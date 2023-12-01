@@ -36,17 +36,6 @@ class TransationModel(TransationBase):
 
 db: model = model()
 
-# def get_db():
-#     db : model = model()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
-#db_dependency = Annotated[Session, Depends(get_db)]
-
-#models.Base.metadata.create_all(bind=engine)
-
 @app.post("/transations/", response_model=TransationModel)
 async def create_transation(transation: TransationBase, db: db): 
     
@@ -68,13 +57,16 @@ async def create_transation(transation: TransationBase, db: db):
             is_income=transation.is_income,
             date=transation.date
         ) 
-
-    db.add(db_transation)
+    else:
+        id = selection.id
+    
     db.commit()
-    db.refresh(db_transation)
-    return db_transation
+
+    return id
 
 @app.get("/transations/", response_model=List[TransationModel])
-async def read_transations(db: db_dependency, skip: int=0, limit: int = 100):
-    transations = db.query(models.Transation).offset(skip).limit(limit).all()
-    return transations
+async def read_transations(db: db, skip: int=0, limit: int = 100):
+
+    query = db.offset(skip).limit(limit).all()
+
+    return query
